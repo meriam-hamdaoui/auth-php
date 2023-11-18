@@ -6,15 +6,17 @@
 <!-- process login credentials -->
 <?php
   try {
+
+    if(isset($_SESSION['username'])) {
+      header("location: index.php");
+    }
+
     # set the error attribute mode
     $connect -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     # start the transaction
-    $connect->beginTransaction();  
-
-     if(isset($_SESSION['username'])) {
-        header("location: index.php");
-    }
+    $connect->beginTransaction(); 
+   
   
     # on click submit btn
     if(isset($_POST['submit'])){
@@ -27,9 +29,9 @@
         echo "<script>alert('Enter your email and password')</script>";
       } else {
          # we need to check if the email is already registered
-        $req = 'SELECT * FROM users WHERE email=:email';
+        $req = "SELECT * FROM users WHERE email='$email'";
         $checkUser = $connect->prepare($req);
-        $checkUser->execute([':email' => $email]);
+        $checkUser->execute();
 
         # we will need it to retrieve & decrypt the password
         $userData = $checkUser->fetch(PDO::FETCH_ASSOC);
@@ -37,11 +39,11 @@
         # check the email first
         if ($checkUser->rowCount() != 0) {
           # compare hashed passwords
-          if(password_verify($password,$userData['my_password'])){
+          if(password_verify($password, $userData['my_password'])){
             $_SESSION['username'] = $userData['username'];
             $_SESSION['email'] = $userData['email'];
 
-            header('location : profile.php');
+            header('location: index.php');
           } else {
             echo "<script>alert('password incorrect')</script>";
 
